@@ -11,8 +11,7 @@ usage: deploy [options]
 
 options:
  -f --folder <path>                  Deploy app from
- -s --subscription <guid>            Azure Subscription Id
- -r --resourcegroup <name>           Resource group name
+ -g --resourcegroup <name>           Resource group name
 """
 
 // helper module to read easily required/optional arguments
@@ -36,11 +35,7 @@ let ignoreOk = function
 let main argv =
     let cliArgs = Docopt(cli).Parse(argv)
     let appFolder = cliArgs |> DocoptResult.getArgument "-f"
-    let subscription = cliArgs |> DocoptResult.getArgument "-s" |> Guid
-    let group = cliArgs |> DocoptResult.getArgument "-r"
-
-    // set subscription id
-    subscription |> Deploy.setSubscription |> ignoreOk
+    let group = cliArgs |> DocoptResult.getArgument "-g"
 
     // deploy
     appFolder

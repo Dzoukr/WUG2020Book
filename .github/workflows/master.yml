@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ master ]
-  
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
@@ -12,26 +12,47 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      
+
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v1.7.2
         with:
           dotnet-version: 3.1.300
-      
+
       - name: Install Tools
         run: dotnet tool restore
-                 
+
       - name: Build
         run: dotnet fake build -t Publish
-      
+
       - name: Publish App
         uses: actions/upload-artifact@v2
         with:
           name: app
           path: publish/app
-          
+
       - name: Publish Infrastructure
         uses: actions/upload-artifact@v2
         with:
           name: infrastructure
           path: publish/deploy
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download app artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: app
+
+      - name: Download infrastructure artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: infrastructure
+
+      - name: AZ Login
+        uses: Azure/login@v1.1
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
+
+      - name: Deploy to Azure
+        run: dotnet Deploy.dll -g "wug2020" -f "../app"
+        working-directory: "infrastructure"
