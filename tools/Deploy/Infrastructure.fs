@@ -21,10 +21,11 @@ let getDeployment (appPath:string) =
     let web = webApp {
         name "wug2020book"
         service_plan_name "myServicePlan"
-        setting "StorageConnectionString" storage.Key.Value
+        setting "StorageConnectionString" storage.Key
         sku WebApp.Sku.B1
         always_on
         link_to_app_insights insights.Name
+        depends_on storage
     }
 
     arm {
