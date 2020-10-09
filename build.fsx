@@ -5,16 +5,14 @@
 open Fake.Core
 open Fake.DotNet
 open Fake.IO
-open Farmer
-open Farmer.Builders
 
 Target.initEnvironment ()
 
 let sharedPath = Path.getFullName "./src/Shared"
 let serverPath = Path.getFullName "./src/Server"
-let deployDir = Path.getFullName "./publish"
-let sharedTestsPath = Path.getFullName "./tests/Shared"
-let serverTestsPath = Path.getFullName "./tests/Server"
+let deployToolPath = Path.getFullName "./tools/Deploy"
+let publishAppDir = Path.getFullName "./publish/app"
+let publishInfrastructureDir = Path.getFullName "./publish/deploy"
 
 let npm args workingDir =
     let npmPath =
@@ -38,13 +36,17 @@ let dotnet cmd workingDir =
     let result = DotNet.exec (DotNet.Options.withWorkingDirectory workingDir) cmd ""
     if result.ExitCode <> 0 then failwithf "'dotnet %s' failed in %s" cmd workingDir
 
-Target.create "Clean" (fun _ -> Shell.cleanDir deployDir)
+Target.create "Clean" (fun _ -> Shell.cleanDirs [ publishAppDir; publishInfrastructureDir ])
 
 Target.create "InstallClient" (fun _ -> npm "install" ".")
 
 Target.create "Publish" (fun _ ->
-    dotnet (sprintf "publish -c Release -o \"%s\"" deployDir) serverPath
+    dotnet (sprintf "publish -c Release -o \"%s\"" publishAppDir) serverPath
     npm "run build" "."
+)
+
+Target.create "PublishInfrastructure" (fun _ ->
+    dotnet (sprintf "publish -c Release -o \"%s\"" publishInfrastructureDir) deployToolPath
 )
 
 Target.create "Run" (fun _ ->
@@ -60,6 +62,7 @@ open Fake.Core.TargetOperators
 
 "Clean"
     ==> "InstallClient"
+    ==> "PublishInfrastructure"
     ==> "Publish"
 
 "Clean"

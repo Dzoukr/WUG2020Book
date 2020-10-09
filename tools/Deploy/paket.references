@@ -1,0 +1,4 @@
+group Deploy
+    Fake.Core.CommandLineParsing
+    Fake.IO.FileSystem
+    Farmer

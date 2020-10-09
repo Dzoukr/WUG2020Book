@@ -30,10 +30,8 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
     | LoadMessages -> { model with IsLoading = true }, Cmd.OfAsync.perform messagesApi.GetMessages () MessagesLoaded
     | MessagesLoaded msgs -> { model with IsLoading = false; Messages = msgs }, Cmd.none
     | InputMessageChanged msg -> { model with InputMessage = msg }, Cmd.none
-    | SendMessage -> { model with IsLoading = true }, Cmd.OfAsync.perform messagesApi.AddMessage model.InputMessage (fun _ -> LoadMessages)
+    | SendMessage -> { model with IsLoading = true; InputMessage = Message.empty }, Cmd.OfAsync.perform messagesApi.AddMessage model.InputMessage (fun _ -> LoadMessages)
 
-open Fable.React
-open Fable.React.Props
 open Feliz
 open Feliz.Bulma
 
