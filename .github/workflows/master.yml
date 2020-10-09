@@ -30,29 +30,30 @@ jobs:
           name: app
           path: publish/app
 
-      - name: Publish Infrastructure
+      - name: Publish Deploy
         uses: actions/upload-artifact@v2
         with:
-          name: infrastructure
+          name: deploy
           path: publish/deploy
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download app artifact
         uses: actions/download-artifact@v2.0.5
         with:
           name: app
+          path: app
 
-      - name: Download infrastructure artifact
+      - name: Download deploy artifact
         uses: actions/download-artifact@v2.0.5
         with:
-          name: infrastructure
+          name: deploy
 
       - name: AZ Login
         uses: Azure/login@v1.1
         with:
-          creds: ${{secrets.AZURE_CREDENTIALS}}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure
-        run: dotnet Deploy.dll -g "wug2020" -f "../app"
-        working-directory: "infrastructure"
+        run: dotnet Deploy.dll -g "wug2020" -f "app"

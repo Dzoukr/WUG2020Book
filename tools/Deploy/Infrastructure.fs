@@ -14,7 +14,7 @@ let getDeployment (appPath:string) =
     // storage account
     let storage = storageAccount {
         name "storagewug2020"
-        sku Storage.Standard_RAGZRS
+        sku Storage.Standard_LRS
     }
 
     // web app
@@ -25,7 +25,6 @@ let getDeployment (appPath:string) =
         sku WebApp.Sku.B1
         always_on
         link_to_app_insights insights.Name
-        depends_on insights
     }
 
     arm {
