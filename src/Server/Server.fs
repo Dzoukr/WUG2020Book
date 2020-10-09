@@ -1,6 +1,7 @@
 module Server.Program
 
 open System
+open System.IO
 open Giraffe
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
@@ -13,6 +14,8 @@ open FsToolkit.ErrorHandling
 open Shared
 open Microsoft.WindowsAzure.Storage
 open Microsoft.WindowsAzure.Storage.Table
+
+let wwwRoot = "public"
 
 module Configuration =
     type Config = {
@@ -78,11 +81,15 @@ module MessagesApi =
 
 let webApp (cfg:Configuration.Config) =
     let client = CloudStorageAccount.Parse(cfg.StorageConnectionString).CreateCloudTableClient()
-
-    Remoting.createApi()
-    |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.fromValue (MessagesApi.api client)
-    |> Remoting.buildHttpHandler
+    let remoting =
+        Remoting.createApi()
+        |> Remoting.withRouteBuilder Route.builder
+        |> Remoting.fromValue (MessagesApi.api client)
+        |> Remoting.buildHttpHandler
+    choose [
+        remoting
+        htmlFile <| Path.Combine(wwwRoot, "index.html")
+    ]
 
 let configureApp cfg (app:IApplicationBuilder) =
     app
@@ -104,7 +111,7 @@ let main _ =
                     .Configure(configureApp cfg)
                     .ConfigureServices(configureServices)
                     .UseUrls([|"http://0.0.0.0:8085"|])
-                    .UseWebRoot("public")
+                    .UseWebRoot(wwwRoot)
                     |> ignore)
         .Build()
         .Run()
