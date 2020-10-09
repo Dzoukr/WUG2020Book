@@ -26,6 +26,7 @@ let getDeployment (appPath:string) =
         always_on
         link_to_app_insights insights.Name
         depends_on storage
+        zip_deploy appPath
     }
 
     arm {
