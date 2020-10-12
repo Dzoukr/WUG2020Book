@@ -22,4 +22,4 @@ dotnet fake build -t run
 Poté otevřete browser na adrese `http://localhost:8080`.
 
 ## SAFE Stack dokumentace
-Chcete-li se dozvědět více informací o Azure Stacku a jeho komponentác, podívejte se na [oficiální SAFE Stack dokumentaci](https://safe-stack.github.io/docs/).
+Chcete-li se dozvědět více informací o Azure Stacku a jeho komponentách, podívejte se na [oficiální SAFE Stack dokumentaci](https://safe-stack.github.io/docs/).
