@@ -1,3 +1,4 @@
+Microsoft.ApplicationInsights.AspNetCore
 Giraffe
 Fable.Remoting.Giraffe
 WindowsAzure.Storage

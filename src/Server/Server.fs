@@ -7,6 +7,7 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.Logging
 open Microsoft.AspNetCore.Hosting
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
@@ -20,6 +21,7 @@ let wwwRoot = "public"
 module Configuration =
     type Config = {
         StorageConnectionString : string
+        AppInsightsKey : string
     }
 
     let load () =
@@ -29,7 +31,10 @@ module Configuration =
 #endif
                 .AddEnvironmentVariables()
                 .Build()
-            |> (fun cfg -> { StorageConnectionString = cfg.["StorageConnectionString"] })
+            |> (fun cfg -> {
+                StorageConnectionString = cfg.["StorageConnectionString"]
+                AppInsightsKey = cfg.["APPINSIGHTS_INSTRUMENTATIONKEY"]
+            })
 
 module MessagesApi =
     open Server.TableStorage
@@ -88,7 +93,7 @@ let webApp (cfg:Configuration.Config) =
         |> Remoting.buildHttpHandler
     choose [
         remoting
-        htmlFile <| Path.Combine(wwwRoot, "index.html")
+        htmlFile (Path.Combine(wwwRoot, "index.html"))
     ]
 
 let configureApp cfg (app:IApplicationBuilder) =
@@ -96,8 +101,9 @@ let configureApp cfg (app:IApplicationBuilder) =
         .UseStaticFiles()
         .UseGiraffe (webApp cfg)
 
-let configureServices (services:IServiceCollection) =
+let configureServices (cfg:Configuration.Config) (services:IServiceCollection) =
     services
+        .AddApplicationInsightsTelemetry(cfg.AppInsightsKey)
         .AddGiraffe() |> ignore
 
 [<EntryPoint>]
@@ -109,7 +115,10 @@ let main _ =
             fun webHostBuilder ->
                 webHostBuilder
                     .Configure(configureApp cfg)
-                    .ConfigureServices(configureServices)
+                    .ConfigureServices(configureServices cfg)
+                    .ConfigureLogging(fun x ->
+                        x.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider> ("", LogLevel.Information) |> ignore
+                    )
                     .UseUrls([|"http://0.0.0.0:8085"|])
                     .UseWebRoot(wwwRoot)
                     |> ignore)
